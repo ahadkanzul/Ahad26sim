@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ahad SIM Information | Matrix DB</title>
+<title>Ahad SIM Info | Secure Matrix</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
@@ -24,10 +24,9 @@ margin:0;
 font-family:'Rajdhani',sans-serif;
 background:var(--dark);
 color:var(--text);
-overflow-x:hidden;
+overflow:hidden;
 }
 
-/* MATRIX CANVAS */
 canvas{
 position:fixed;
 top:0;
@@ -35,14 +34,58 @@ left:0;
 z-index:-1;
 }
 
+/* LOGIN */
+.login-box{
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.login-card{
+background:var(--card);
+border:1px solid var(--border);
+padding:30px;
+width:320px;
+border-radius:15px;
+box-shadow:0 0 40px #00ff9c44;
+text-align:center;
+}
+
+.login-card h2{
+color:var(--green);
+letter-spacing:2px;
+margin-bottom:20px;
+}
+
+.login-card input{
+width:100%;
+padding:14px;
+margin-bottom:15px;
+background:#000;
+border:1px solid var(--border);
+border-radius:8px;
+color:var(--green);
+}
+
+.login-card button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:8px;
+background:var(--green);
+font-weight:700;
+cursor:pointer;
+}
+
 /* APP */
 .app{
+display:none;
 max-width:420px;
 margin:auto;
 padding:25px;
 }
 
-/* LOGO */
 .logo{
 width:90px;
 height:90px;
@@ -58,31 +101,15 @@ box-shadow:0 0 25px var(--green);
 margin:20px auto;
 }
 
-/* TITLES */
-h1{
-text-align:center;
-margin:10px 0 0;
-letter-spacing:2px;
-color:var(--green);
-}
+h1{text-align:center;color:var(--green);}
 
-.sub{
-text-align:center;
-opacity:.7;
-font-size:.9rem;
-margin-bottom:25px;
-}
-
-/* CARD */
 .card{
 background:var(--card);
 border:1px solid var(--border);
 border-radius:14px;
 padding:20px;
-box-shadow:0 0 30px #00ff9c22;
 }
 
-/* INPUT */
 input{
 width:100%;
 padding:15px;
@@ -90,15 +117,8 @@ background:#000;
 border:1px solid var(--border);
 border-radius:8px;
 color:var(--green);
-font-size:1rem;
 }
 
-input:focus{
-outline:none;
-box-shadow:0 0 15px var(--green);
-}
-
-/* BUTTON */
 button{
 width:100%;
 margin-top:15px;
@@ -106,17 +126,10 @@ padding:15px;
 border:none;
 border-radius:8px;
 background:var(--green);
-color:#002b1c;
 font-weight:700;
 cursor:pointer;
-letter-spacing:1px;
 }
 
-button:hover{
-box-shadow:0 0 25px var(--green);
-}
-
-/* LOADER */
 .loader{
 text-align:center;
 margin:20px;
@@ -125,16 +138,11 @@ display:none;
 color:var(--green);
 }
 
-/* RESULT */
-.result{
-margin-top:20px;
-}
-
 .data{
 background:#020f09;
 border-left:4px solid var(--green);
 padding:15px;
-margin-bottom:15px;
+margin-top:15px;
 border-radius:8px;
 }
 
@@ -147,13 +155,6 @@ font-size:.85rem;
 }
 
 .row:last-child{border:none}
-
-.footer{
-text-align:center;
-margin:40px 0 10px;
-font-size:.8rem;
-opacity:.6;
-}
 </style>
 </head>
 
@@ -161,15 +162,23 @@ opacity:.6;
 
 <canvas id="matrix"></canvas>
 
-<div class="app">
+<!-- LOGIN -->
+<div class="login-box" id="loginBox">
+<div class="login-card">
+<h2>SECURE LOGIN</h2>
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">LOGIN</button>
+</div>
+</div>
 
+<!-- APP -->
+<div class="app" id="app">
 <div class="logo">A</div>
-
 <h1>AHAD SIM INFO</h1>
-<div class="sub">Matrix Powered Secure Database</div>
 
 <div class="card">
-<input id="target" type="number" placeholder="Enter Mobile / CNIC">
+<input id="target" placeholder="Enter Mobile / CNIC">
 <button onclick="fetchData()">SCAN DATABASE</button>
 </div>
 
@@ -177,38 +186,44 @@ opacity:.6;
 <i class="fas fa-circle-notch fa-spin"></i>
 </div>
 
-<div class="result" id="results"></div>
-
-<div class="footer">
-POWERED BY MUHAMMAD AHAD
-</div>
-
+<div id="results"></div>
 </div>
 
 <script>
-/* MATRIX EFFECT */
+/* MATRIX */
 const c=document.getElementById("matrix");
 const ctx=c.getContext("2d");
-c.height=window.innerHeight;
-c.width=window.innerWidth;
-const letters="01";
-const font=16;
+c.width=innerWidth;c.height=innerHeight;
+const letters="01";const font=16;
 const cols=c.width/font;
-const drops=[];
-for(let x=0;x<cols;x++)drops[x]=1;
-function draw(){
+const drops=Array(cols).fill(1);
+setInterval(()=>{
 ctx.fillStyle="rgba(0,0,0,0.05)";
 ctx.fillRect(0,0,c.width,c.height);
 ctx.fillStyle="#00ff9c";
 ctx.font=font+"px monospace";
-for(let i=0;i<drops.length;i++){
-const text=letters[Math.floor(Math.random()*letters.length)];
-ctx.fillText(text,i*font,drops[i]*font);
-if(drops[i]*font>c.height&&Math.random()>0.95)drops[i]=0;
-drops[i]++;
+drops.forEach((y,i)=>{
+const t=letters[Math.random()*2|0];
+ctx.fillText(t,i*font,y*font);
+drops[i]=y*font>c.height&&Math.random()>0.95?0:y+1;
+});
+},35);
+
+/* LOGIN */
+function login(){
+const u=document.getElementById("user").value;
+const p=document.getElementById("pass").value;
+
+if(u==="Ahad" && p==="a2z12345"){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("app").style.display="block";
+
+const msg=new SpeechSynthesisUtterance("Welcome to Ahad SIM Info");
+speechSynthesis.speak(msg);
+}else{
+alert("Invalid Login");
 }
 }
-setInterval(draw,35);
 
 /* API */
 const API="https://sim.f-a-k.workers.dev/?q=";
@@ -217,9 +232,8 @@ const res=document.getElementById("results");
 
 async function fetchData(){
 const q=document.getElementById("target").value.trim();
-if(q.length<3){alert("Enter valid number");return;}
-res.innerHTML="";
-loader.style.display="block";
+if(q.length<3)return alert("Enter valid data");
+res.innerHTML="";loader.style.display="block";
 
 try{
 const r=await fetch(API+q);
@@ -228,20 +242,17 @@ loader.style.display="none";
 
 if(j.status==="success"){
 (j.data instanceof Array?j.data:[j.data]).forEach(d=>{
-let html='<div class="data">';
+let h='<div class="data">';
 for(let k in d){
 if(["credit","api_owner","response_code"].includes(k))continue;
-html+=`<div class="row"><span>${k}</span><span>${d[k]}</span></div>`;
+h+=`<div class="row"><span>${k}</span><span>${d[k]}</span></div>`;
 }
-html+='</div>';
-res.innerHTML+=html;
+h+='</div>';res.innerHTML+=h;
 });
-}else{
-res.innerHTML="<div class='data'>NO DATA FOUND</div>";
-}
+}else res.innerHTML="<div class='data'>NO DATA FOUND</div>";
 }catch{
 loader.style.display="none";
-res.innerHTML="<div class='data'>CONNECTION ERROR</div>";
+res.innerHTML="<div class='data'>ERROR</div>";
 }
 }
 </script>
